@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: Payment Gateway API
+  description: API for handling deposit, withdrawal, and transaction status callbacks.
+  version: 1.0.0
+servers:
+  - url: https://{base_url}
+    description: Staging server
+    variables:
+      base_url:
+        default: localhost:8080
+paths:
+  /withdrawal:
+    post:
+      summary: Initiate a withdrawal
+      operationId: initiateWithdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+      responses:
+        '200':
+          description: Withdrawal initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /deposit:
+    post:
+      summary: Handle a deposit
+      operationId: handleDeposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+      responses:
+        '200':
+          description: Deposit handled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /callback/withdrawal/{transaction-id}:
+    put:
+      summary: Handle withdrawal status callback
+      operationId: withdrawalCallback
+      parameters:
+        - name: transaction-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusCallback'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusCallback'
+      responses:
+        '200':
+          description: Callback handled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          description: Invalid input
+        '404':
+          description: Transaction not found
+        '500':
+          description: Internal server error
+
+  /callback/deposit/{transaction-id}:
+    put:
+      summary: Handle deposit status callback
+      operationId: depositCallback
+      parameters:
+        - name: transaction-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusCallback'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusCallback'
+      responses:
+        '200':
+          description: Callback handled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          description: Invalid input
+        '404':
+          description: Transaction not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    WithdrawalRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 100.50
+        user_id:
+          type: integer
+          example: 1
+        payment_gateway_name:
+          type: string
+          example: "Stripe"
+        receiving_account_id:
+          type: string
+          example: "acct_123456789"
+        authentication_code:
+          type: string
+          example: "auth_code_98765"
+      required:
+        - amount
+        - user_id
+        - payment_gateway_name
+        - receiving_account_id
+        - authentication_code
+
+    DepositRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 200.75
+        user_id:
+          type: integer
+          example: 1
+        currency:
+          type: string
+          example: "USD"
+      required:
+        - amount
+        - user_id
+        - currency
+
+    TransactionStatusCallback:
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "SUCCESS"
+      required:
+        - transaction_id
+        - status
+
+    APIResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Transaction processed successfully"
+        data:
+          type: object
+          nullable: true
+      required:
+        - status_code
+        - message
